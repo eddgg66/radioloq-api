@@ -1,5 +1,13 @@
-if (!global._radioloqSessions) {
-  global._radioloqSessions = new Map();
+async function redisGet(key) {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const res = await fetch(`${url}/get/${key}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) return null;
+  const data = await res.json();
+  if (!data.result) return null;
+  try { return JSON.parse(data.result); } catch { return null; }
 }
 
 export default async function handler(req, res) {
@@ -13,13 +21,9 @@ export default async function handler(req, res) {
   const { session } = req.query;
   if (!session) return res.status(400).json({ valid: false, error: 'No session' });
 
-  const data = global._radioloqSessions?.get(session);
+  const data = await redisGet(`session:${session}`);
 
   if (!data) return res.status(200).json({ valid: false, reason: 'Not found' });
-  if (Date.now() > data.expiresAt) {
-    global._radioloqSessions.delete(session);
-    return res.status(200).json({ valid: false, reason: 'Expired' });
-  }
 
   return res.status(200).json({
     valid: true,
