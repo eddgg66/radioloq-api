@@ -1,0 +1,12 @@
+{
+  "name": "radioloq-api",
+  "version": "1.0.0",
+  "description": "Radioloq payment webhook and session verification API",
+  "main": "api/webhook.js",
+  "dependencies": {
+    "stripe": "^14.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
