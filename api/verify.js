@@ -1,6 +1,9 @@
-module.exports = async (req, res) => {
-  // CORS
-  res.setHeader('Access-Control-Allow-Origin', 'https://radioloq.com');
+if (!global._radioloqSessions) {
+  global._radioloqSessions = new Map();
+}
+
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
@@ -8,30 +11,20 @@ module.exports = async (req, res) => {
   if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
   const { session } = req.query;
+  if (!session) return res.status(400).json({ valid: false, error: 'No session' });
 
-  if (!session) {
-    return res.status(400).json({ valid: false, error: 'No session ID provided' });
-  }
+  const data = global._radioloqSessions?.get(session);
 
-  // Check session store
-  const sessions = global._radioloqSessions || new Map();
-  const data = sessions.get(session);
-
-  if (!data) {
-    return res.status(200).json({ valid: false, reason: 'Session not found' });
-  }
-
-  // Check expiry
+  if (!data) return res.status(200).json({ valid: false, reason: 'Not found' });
   if (Date.now() > data.expiresAt) {
-    sessions.delete(session);
-    return res.status(200).json({ valid: false, reason: 'Session expired' });
+    global._radioloqSessions.delete(session);
+    return res.status(200).json({ valid: false, reason: 'Expired' });
   }
 
-  // Valid — return session info
   return res.status(200).json({
     valid: true,
     pkg: data.pkg,
     email: data.email,
     paidAt: data.paidAt,
   });
-};
+}

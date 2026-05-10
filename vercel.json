@@ -1,26 +1,15 @@
 {
-  "name": "radioloq-api",
-  "version": 2,
-  "builds": [
-    { "src": "api/*.js", "use": "@vercel/node" }
-  ],
-  "routes": [
-    {
-      "src": "/webhook",
-      "dest": "/api/webhook.js"
-    },
-    {
-      "src": "/verify",
-      "dest": "/api/verify.js"
-    }
+  "rewrites": [
+    { "source": "/webhook", "destination": "/api/webhook" },
+    { "source": "/verify", "destination": "/api/verify" }
   ],
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "https://radioloq.com" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
         { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-        { "key": "Access-Control-Allow-Headers", "value": "Content-Type" }
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, stripe-signature" }
       ]
     }
   ]
